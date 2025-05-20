@@ -1,32 +1,5 @@
 # 🎯 Industrielle Bildverarbeitung mit Sony-Kamera – PyQt & PyPylon
 
-Dieses Projekt bietet eine vollständige grafische Benutzeroberfläche in Python, um eine Sony-Industriekamera (GigE Vision oder USB3 Vision kompatibel) mit PyPylon anzusteuern.  
-Es führt klassische Bildverarbeitung in Echtzeit zur Objekterkennung durch und ermöglicht die visuelle Kontrolle sowie das Speichern annotierter Bilder.
-
----
-
-## 📦 Funktionen
-
-- ✅ Live-Stream der Kamera  
-- ✅ Klassische Bildverarbeitung (Binarisierung, Filterung, Konturen, Objekterkennung)  
-- ✅ Anzeige & Zählung erkannter Objekte in Echtzeit  
-- ✅ Speichern der verarbeiteten Bilder mit Markierungen  
-- ✅ Benutzerfreundliche GUI mit PyQt6  
-
----
-
-## 🛠️ Voraussetzungen
-
-- Python 3.7 oder höher  
-- Sony-Industriekamera (GigE Vision oder USB3 Vision)  
-- Treiber oder GenICam-kompatibles SDK (z. B. Basler Pylon, Aravis, Sony SDK)  
-
-### 📚 Benötigte Python-Bibliotheken
-
-```bash
-pip install opencv-python pypylon PyQt6
-
-
 Dieses Projekt implementiert eine grafische Benutzeroberfläche in Python zur Live-Bildaufnahme  
 und Analyse mit einer industriellen Sony-Kamera, die GenICam unterstützt, unter Verwendung der PyPylon-Bibliothek.
 
@@ -54,8 +27,7 @@ und Analyse mit einer industriellen Sony-Kamera, die GenICam unterstützt, unter
 
 ## Installation
 
-```bash
-pip install opencv-python pypylon PyQt6
+
 
 
 # Création du fichier README.md avec le contenu fourni
