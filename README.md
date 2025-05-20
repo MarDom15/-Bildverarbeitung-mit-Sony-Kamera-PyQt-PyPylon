@@ -51,6 +51,7 @@ The goal is to ensure packaging quality and avoid any incidents due to missing, 
 
 ## ⚙️ Detailed Technical Pipeline
 
+
 ### 🔁 Pipeline Diagram
 
 ```text
@@ -105,40 +106,60 @@ The goal is to ensure packaging quality and avoid any incidents due to missing, 
 ```
 ---
 
-## 🧪 Technical Steps
+## 🔢 Detailed Processing Steps
 
-### Image Acquisition
+### 1. Image Acquisition
 
-Automatically triggered capture using SDK as soon as an object enters the inspection zone.
+* **Camera connection**: via Sony SDK or using GenICam standard (e.g., Aravis, Spinnaker).
+* **Triggering**: Hardware or software trigger initiates image capture when an object enters the inspection zone.
+* **High-resolution capture**: (e.g., 5MP, 30fps) ensures accurate analysis.
+* **Synchronization**: With the conveyor belt to prevent blurred images.
 
-### Preprocessing
+### 2. Image Preprocessing
 
-* Conversion to grayscale
-* Histogram equalization
-* Gaussian blur to reduce noise
----
+* **Grayscale conversion**: Reduces data complexity for faster analysis.
+* **Contrast equalization**: Histogram equalization improves detail visibility by normalizing lighting across the image.
+* **Gaussian filtering**: Reduces noise to minimize false detections.
 
-### Segmentation
+### 3. Object Segmentation
 
-* Adaptive thresholding
-* Morphological closing to isolate objects
+* **Adaptive thresholding**: Separates foreground (objects) from background, robust against non-uniform lighting.
+* **Mathematical morphology**:
 
-### Object Analysis
+  * **Closing (dilation then erosion)**: Fills small holes and connects fragmented object parts.
+* **Contour detection**: Using OpenCV `findContours` to extract each object as a distinct shape.
 
-* Counting
-* Surface calculation
-* Orientation and position validation
+### 4. Object Analysis
 
-### Logic Output
+* **Counting**: `len(contours)` gives the number of detected objects.
+* **Measurements for each contour**:
 
-* Compares with expected count and tolerances
-* Output: OK or NOK status
+  * **Area**: Pixel-based surface calculation.
+  * **Shape**: Aspect ratio (width/height), circularity.
+  * **Orientation**: Main angle of object to check alignment.
+  * **Positioning**: Compared to a defined tolerance zone in the image.
+* **Defect detection**:
 
-### Result Display & Logging
+  * **Missing objects** (incorrect count).
+  * **Deformed shapes** (shape outside tolerance).
+  * **Misaligned objects** (outside expected position).
 
-* Annotated image output
-* CSV logs
-* NOK images saved for later analysis
+### 5. Logic Output
+
+* If `object_count == expected` **AND** `shape` and `position` are OK →
+
+  * Send **OK status** to PLC (conveyor continues).
+* Else →
+
+  * Send **NOK status**, raise alert, **stop conveyor**.
+* **Real-time communication**: Via API to the industrial PLC.
+
+### 6. Display and Logging
+
+* **Annotated image**: Rectangles and IDs overlaid on detected objects.
+* **CSV logging**: Stores timestamp, object count, and status.
+* **NOK image saving**: Faulty images stored in a dedicated folder for later review.
+* **Optional dashboard**: For operator supervision and monitoring.
 
 ---
 
@@ -166,9 +187,7 @@ Accurate product counting before shrink wrapping or boxing.
 
 ```bash
 pip install opencv-python numpy pandas pypylon pillow
-
 ```
----
 
 3. Connect the Sony camera via GigE or Camera Link.
 
@@ -216,4 +235,6 @@ Feel free to propose improvements, report issues, or suggest new features via is
 
 ## 📞 Contact
 
-For technical support or inquiries, please contact the project team.
+For technical support or inquiries, please contact mdomche@gmail.com.
+
+
