@@ -165,7 +165,9 @@ Accurate product counting before shrink wrapping or boxing.
 
 ```bash
 pip install opencv-python numpy pandas pypylon pillow
+
 ```
+---
 
 3. Connect the Sony camera via GigE or Camera Link.
 
