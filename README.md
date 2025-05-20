@@ -104,6 +104,7 @@ The goal is to ensure packaging quality and avoid any incidents due to missing, 
 └───────────────┘
 
 ---
+
 ## 🧪 Technical Steps
 
 ### Image Acquisition
