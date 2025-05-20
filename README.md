@@ -1,113 +1,215 @@
-# 🎯 Industrielle Bildverarbeitung mit Sony-Kamera – PyQt & PyPylon
-
-Dieses Projekt implementiert eine grafische Benutzeroberfläche in Python zur Live-Bildaufnahme  
-und Analyse mit einer industriellen Sony-Kamera, die GenICam unterstützt, unter Verwendung der PyPylon-Bibliothek.
+# Object Detection and Counting System for Packaging using Sony Camera
 
 ---
 
-## Funktionen
+## 🎯 Objective
 
-- Live-Videoaufnahme mit Sony-Kamera (GigE/USB3 Vision-kompatibel)  
-- Klassische Bildverarbeitung (Binärisierung, Morphologie, Konturenerkennung)  
-- Markierung erkannter Objekte im Bild  
-- Echtzeit-Anzeige der Anzahl erkannter Objekte  
-- Speicherung annotierter Bilder im PNG/JPEG-Format über die GUI  
-- Einfache Benutzeroberfläche mit PyQt6
+This project aims to design an industrial system capable of automatically detecting, counting, and verifying objects placed on a conveyor belt before packaging. Using a high-resolution Sony camera combined with advanced image processing, the system ensures:
 
----
+- All expected objects are present.
+- Objects are undamaged and meet shape criteria.
+- Objects are correctly positioned within a tolerance zone.
 
-## Voraussetzungen
-
-- Python 3.7 oder höher  
-- OpenCV (`opencv-python`)  
-- PyPylon (`pypylon`)  
-- PyQt6 (`PyQt6`)
+The goal is to ensure packaging quality and avoid any incidents due to missing, damaged, or misaligned items.
 
 ---
 
-## Installation
+## 🔧 Hardware Used
 
+- **Sony XCG / XCL Series Camera**  
+  High-resolution industrial camera with GigE or Camera Link interface, ensuring fast and accurate image capture.
 
+- **Diffuse LED Lighting / Backlight**  
+  Provides uniform or backlit illumination, facilitating object segmentation and detection.
 
-
-# 🖥️ Nutzung
-
-## 1. Kamera anschließen  
-Schließe deine Sony-Kamera (GigE oder USB3 Vision) per Ethernet oder USB an.
-
-## 2. Skript starten  
-
-## 3. Funktionen in der Oberfläche  
-- **Démarrer caméra** – Startet den Live-Stream der Kamera  
-- **Arrêter caméra** – Beendet die Kameraverbindung  
-- **Sauvegarder image annotée** – Speichert das aktuell verarbeitete Bild mit Markierungen
-
-⚠️ Die Oberfläche ist bewusst einfach gehalten, aber funktional und realistisch einsetzbar im industriellen Kontext.
+- **Industrial or Embedded PC**  
+  Handles real-time image processing, equipped with Python and required libraries.
 
 ---
 
-## 🧠 Verwendete Algorithmen (klassische Bildverarbeitung)
+## 💡 Software and Libraries
 
-- Graustufen-Konvertierung (cv2.cvtColor)  
-- Weichzeichnung (cv2.GaussianBlur)  
-- Otsu-Schwellenwert (cv2.threshold)  
-- Morphologische Operationen (cv2.morphologyEx)  
-- Konturenerkennung (cv2.findContours)  
-- Objektauswahl via Flächenfilter (cv2.contourArea)  
+- **Python 3.x**  
+  Main programming language used for development.
 
-Diese Methoden sind gut geeignet für einfache bis mittlere Kontrollaufgaben in der Produktion, z. B.:
+- **OpenCV**  
+  For image processing, segmentation, and analysis.
 
-✅ Zählen von Produkten auf einem Förderband  
-✅ Prüfen, ob Objekte vollständig sind  
-✅ Erkennung von fehlenden oder defekten Teilen  
+- **NumPy**  
+  For matrix manipulation and numerical operations.
 
----
+- **PyPylon (Sony SDK)**  
+  Interface with the Sony industrial camera.
 
-## 🧪 Getestete Umgebung
+- **Pandas**  
+  For data management and result logging.
 
-- Windows 10 + Sony XCG-CG510 (GigE Vision)  
-- Ubuntu 22.04 + Kamera über Aravis (alternativ zu PyPylon möglich)  
-- Python 3.11, OpenCV 4.8, PyQt6  
+- **Tkinter**  
+  For a simple graphical user interface (GUI) for monitoring and control.
 
 ---
 
-## 📝 Beispiel: Anwendungsszenario in der Industrie
+## ⚙️ Detailed Technical Pipeline
 
-**Projekt:** Objektzählung auf einer Verpackungslinie  
-**Hardware:** Sony GigE-Kamera, oberhalb des Förderbandes montiert  
+### 🔁 Pipeline Diagram
 
-### Ablauf:
-- Kamera wird über die GUI gestartet  
-- Bilder werden in Echtzeit aufgenommen  
-- Das System erkennt und zählt Objekte automatisch  
-- Bilder mit Markierungen werden auf Wunsch gespeichert  
-- Integration möglich mit SPS oder Robotik (optional)  
+```text
+┌───────────────┐
+│   Sony Camera │
+│ (via PyPylon) │
+└──────┬────────┘
+       │
+       ▼
+┌───────────────┐
+│  Image        │
+│  Acquisition  │
+└──────┬────────┘
+       │
+       ▼
+┌───────────────┐
+│ Preprocessing │
+│ - Grayscale   │
+│ - Equalize    │
+│ - Gaussian    │
+└──────┬────────┘
+       │
+       ▼
+┌───────────────┐
+│ Segmentation  │
+│ - Threshold   │
+│ - Morphology  │
+│ - Contours    │
+└──────┬────────┘
+       │
+       ▼
+┌───────────────┐
+│ Object        │
+│ Analysis      │
+│ - Count       │
+│ - Shape       │
+│ - Position    │
+└──────┬────────┘
+       │
+       ▼
+┌───────────────┐
+│ Logic Output  │
+│ - OK / NOK    │
+│ - PLC Alert   │
+└──────┬────────┘
+       │
+       ▼
+┌───────────────┐
+│ GUI + Logging │
+│ CSV + NOK Img │
+└───────────────┘
+
+---
+## 🧪 Technical Steps
+
+### Image Acquisition
+
+Automatically triggered capture using SDK as soon as an object enters the inspection zone.
+
+### Preprocessing
+
+* Conversion to grayscale
+* Histogram equalization
+* Gaussian blur to reduce noise
+
+### Segmentation
+
+* Adaptive thresholding
+* Morphological closing to isolate objects
+
+### Object Analysis
+
+* Counting
+* Surface calculation
+* Orientation and position validation
+
+### Logic Output
+
+* Compares with expected count and tolerances
+* Output: OK or NOK status
+
+### Result Display & Logging
+
+* Annotated image output
+* CSV logs
+* NOK images saved for later analysis
 
 ---
 
-## 👤 Autor
+## 🧠 Real-World Use Cases
 
-**Dein Name**  
-📧 mdomche@gmail.com  
-🔗 https://github.com/MarDom15  
+### Medical Kit Packaging
 
----
+Ensures all required components are present before sealing.
 
-## 📝 Lizenz
+### Logistics / Warehousing
 
-Dieses Projekt steht unter der MIT-Lizenz – freie Nutzung für persönliche oder kommerzielle Projekte unter Beibehaltung des Copyright.
+Verifies that all small items are in the parcel before closing the box.
 
----
+### Food Industry
 
-## 🧩 Erweiterungsmöglichkeiten
-
-- 🔌 Integration von Trigger-Eingängen (z. B. für SPS)  
-- 🧠 Erweiterung mit Deep Learning-Modulen (z. B. YOLOv8, TensorRT)  
-- 🎥 Multi-Kamera-Support  
-- 📤 Export von Ergebnissen (CSV, MQTT, OPC UA)  
+Accurate product counting before shrink wrapping or boxing.
 
 ---
 
-## 📸 Screenshots (optional)
+## 🚀 Installation & Requirements
 
-(Hier kannst du Screenshots deiner GUI oder von Erkennungsergebnissen einfügen)
+1. Install Python 3.x (recommended: version 3.8+).
+
+2. Install required Python libraries:
+
+```bash
+pip install opencv-python numpy pandas pypylon pillow
+```
+
+3. Connect the Sony camera via GigE or Camera Link.
+
+4. Set up Sony SDK and ensure camera detection via PyPylon.
+
+5. Set up appropriate lighting for consistent visual conditions.
+
+---
+
+## 🔄 Communication with PLC
+
+The system can be integrated with industrial automation through standard protocols:
+
+* **Profinet**
+* **Modbus TCP**
+
+This allows real-time status (OK/NOK) reporting and sending control signals (e.g. stop conveyor).
+
+---
+
+## ⚙️ Customization & Extensions
+
+* Adjust thresholding, size filters, and tolerance zones for different objects.
+* Integrate machine learning models for more complex object classification.
+* Add a more advanced GUI for operators and system monitoring.
+* Automate lighting calibration to adapt to environment changes.
+
+---
+
+## 📁 Project Structure
+
+* `main.py` : Main script handling acquisition, processing, and UI (not included here).
+* `output/` : Logging folder
+
+  * `nok_images/` : Stores images with detected errors.
+  * `results.csv` : CSV log of processed items and statuses.
+
+---
+
+## 🤝 Contribution
+
+Feel free to propose improvements, report issues, or suggest new features via issues or pull requests.
+
+---
+
+## 📞 Contact
+
+For technical support or inquiries, please contact the project team.
