@@ -88,8 +88,8 @@ Diese Methoden sind gut geeignet für einfache bis mittlere Kontrollaufgaben in 
 ## 👤 Autor
 
 **Dein Name**  
-📧 deine.email@example.com  
-🔗 https://github.com/deinprofil  
+📧 mdomche@gmail.com  
+🔗 https://github.com/MarDom15  
 
 ---
 
@@ -111,15 +111,3 @@ Dieses Projekt steht unter der MIT-Lizenz – freie Nutzung für persönliche od
 ## 📸 Screenshots (optional)
 
 (Hier kannst du Screenshots deiner GUI oder von Erkennungsergebnissen einfügen)
-
----
-
-## 🗂️ Optional: requirements.txt
-"""
-
-# Écriture dans le fichier README.md
-file_path = "/mnt/data/README.md"
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(readme_content)
-
-file_path
