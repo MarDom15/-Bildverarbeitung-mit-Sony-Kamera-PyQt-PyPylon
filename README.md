@@ -1,4 +1,31 @@
-# Industrielle Bildverarbeitung mit Sony-Kamera – PyQt & PyPylon
+# 🎯 Industrielle Bildverarbeitung mit Sony-Kamera – PyQt & PyPylon
+
+Dieses Projekt bietet eine vollständige grafische Benutzeroberfläche in Python, um eine Sony-Industriekamera (GigE Vision oder USB3 Vision kompatibel) mit PyPylon anzusteuern.  
+Es führt klassische Bildverarbeitung in Echtzeit zur Objekterkennung durch und ermöglicht die visuelle Kontrolle sowie das Speichern annotierter Bilder.
+
+---
+
+## 📦 Funktionen
+
+- ✅ Live-Stream der Kamera  
+- ✅ Klassische Bildverarbeitung (Binarisierung, Filterung, Konturen, Objekterkennung)  
+- ✅ Anzeige & Zählung erkannter Objekte in Echtzeit  
+- ✅ Speichern der verarbeiteten Bilder mit Markierungen  
+- ✅ Benutzerfreundliche GUI mit PyQt6  
+
+---
+
+## 🛠️ Voraussetzungen
+
+- Python 3.7 oder höher  
+- Sony-Industriekamera (GigE Vision oder USB3 Vision)  
+- Treiber oder GenICam-kompatibles SDK (z. B. Basler Pylon, Aravis, Sony SDK)  
+
+### 📚 Benötigte Python-Bibliotheken
+
+```bash
+pip install opencv-python pypylon PyQt6
+
 
 Dieses Projekt implementiert eine grafische Benutzeroberfläche in Python zur Live-Bildaufnahme  
 und Analyse mit einer industriellen Sony-Kamera, die GenICam unterstützt, unter Verwendung der PyPylon-Bibliothek.
@@ -29,3 +56,100 @@ und Analyse mit einer industriellen Sony-Kamera, die GenICam unterstützt, unter
 
 ```bash
 pip install opencv-python pypylon PyQt6
+
+
+# Création du fichier README.md avec le contenu fourni
+
+readme_content = """# 🖥️ Nutzung
+
+## 1. Kamera anschließen  
+Schließe deine Sony-Kamera (GigE oder USB3 Vision) per Ethernet oder USB an.
+
+## 2. Skript starten  
+
+## 3. Funktionen in der Oberfläche  
+- **Démarrer caméra** – Startet den Live-Stream der Kamera  
+- **Arrêter caméra** – Beendet die Kameraverbindung  
+- **Sauvegarder image annotée** – Speichert das aktuell verarbeitete Bild mit Markierungen
+
+⚠️ Die Oberfläche ist bewusst einfach gehalten, aber funktional und realistisch einsetzbar im industriellen Kontext.
+
+---
+
+## 🧠 Verwendete Algorithmen (klassische Bildverarbeitung)
+
+- Graustufen-Konvertierung (cv2.cvtColor)  
+- Weichzeichnung (cv2.GaussianBlur)  
+- Otsu-Schwellenwert (cv2.threshold)  
+- Morphologische Operationen (cv2.morphologyEx)  
+- Konturenerkennung (cv2.findContours)  
+- Objektauswahl via Flächenfilter (cv2.contourArea)  
+
+Diese Methoden sind gut geeignet für einfache bis mittlere Kontrollaufgaben in der Produktion, z. B.:
+
+✅ Zählen von Produkten auf einem Förderband  
+✅ Prüfen, ob Objekte vollständig sind  
+✅ Erkennung von fehlenden oder defekten Teilen  
+
+---
+
+## 🧪 Getestete Umgebung
+
+- Windows 10 + Sony XCG-CG510 (GigE Vision)  
+- Ubuntu 22.04 + Kamera über Aravis (alternativ zu PyPylon möglich)  
+- Python 3.11, OpenCV 4.8, PyQt6  
+
+---
+
+## 📝 Beispiel: Anwendungsszenario in der Industrie
+
+**Projekt:** Objektzählung auf einer Verpackungslinie  
+**Hardware:** Sony GigE-Kamera, oberhalb des Förderbandes montiert  
+
+### Ablauf:
+- Kamera wird über die GUI gestartet  
+- Bilder werden in Echtzeit aufgenommen  
+- Das System erkennt und zählt Objekte automatisch  
+- Bilder mit Markierungen werden auf Wunsch gespeichert  
+- Integration möglich mit SPS oder Robotik (optional)  
+
+---
+
+## 👤 Autor
+
+**Dein Name**  
+📧 deine.email@example.com  
+🔗 https://github.com/deinprofil  
+
+---
+
+## 📝 Lizenz
+
+Dieses Projekt steht unter der MIT-Lizenz – freie Nutzung für persönliche oder kommerzielle Projekte unter Beibehaltung des Copyright.
+
+---
+
+## 🧩 Erweiterungsmöglichkeiten
+
+- 🔌 Integration von Trigger-Eingängen (z. B. für SPS)  
+- 🧠 Erweiterung mit Deep Learning-Modulen (z. B. YOLOv8, TensorRT)  
+- 🎥 Multi-Kamera-Support  
+- 📤 Export von Ergebnissen (CSV, MQTT, OPC UA)  
+
+---
+
+## 📸 Screenshots (optional)
+
+(Hier kannst du Screenshots deiner GUI oder von Erkennungsergebnissen einfügen)
+
+---
+
+## 🗂️ Optional: requirements.txt
+"""
+
+# Écriture dans le fichier README.md
+file_path = "/mnt/data/README.md"
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(readme_content)
+
+file_path
