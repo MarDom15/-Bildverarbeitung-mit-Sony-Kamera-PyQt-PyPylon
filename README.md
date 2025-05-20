@@ -116,6 +116,7 @@ Automatically triggered capture using SDK as soon as an object enters the inspec
 * Conversion to grayscale
 * Histogram equalization
 * Gaussian blur to reduce noise
+---
 
 ### Segmentation
 
