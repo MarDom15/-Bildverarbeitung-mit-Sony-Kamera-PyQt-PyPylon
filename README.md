@@ -30,9 +30,7 @@ und Analyse mit einer industriellen Sony-Kamera, die GenICam unterstützt, unter
 
 
 
-# Création du fichier README.md avec le contenu fourni
-
-readme_content = """# 🖥️ Nutzung
+# 🖥️ Nutzung
 
 ## 1. Kamera anschließen  
 Schließe deine Sony-Kamera (GigE oder USB3 Vision) per Ethernet oder USB an.
