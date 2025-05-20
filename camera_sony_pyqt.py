@@ -1,126 +1,132 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog, QMessageBox
-from PyQt6.QtGui import QImage, QPixmap
-from PyQt6.QtCore import QTimer
-from pypylon import pylon
 import cv2
 import numpy as np
-from datetime import datetime
+import pandas as pd
 import os
+import datetime
+from pypylon import pylon
+from tkinter import Tk, Label, Button, Canvas, PhotoImage
+from PIL import Image, ImageTk
 
-class CameraApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Inspection Caméra Sony - Vision Industrielle")
-        self.setGeometry(100, 100, 800, 600)
+# Configuration constants
+EXPECTED_COUNT = 3  # Expected number of objects
+TOLERANCE_ZONE = (100, 100, 400, 400)  # Acceptable object area (ROI)
+SAVE_DIR = "output/nok_images"  # Directory to save NOK images
+CSV_LOG = "output/results.csv"  # Path to CSV log
 
-        self.layout = QVBoxLayout()
+# Ensure output directories exist
+os.makedirs(SAVE_DIR, exist_ok=True)
 
-        self.image_label = QLabel("Aucune image")
-        self.layout.addWidget(self.image_label)
+# Initialize the CSV log file if it doesn't exist
+if not os.path.exists(CSV_LOG):
+    df = pd.DataFrame(columns=["timestamp", "count", "status"])
+    df.to_csv(CSV_LOG, index=False)
 
-        self.btn_start = QPushButton("Démarrer caméra")
-        self.btn_start.clicked.connect(self.start_camera)
-        self.layout.addWidget(self.btn_start)
+def log_result(timestamp, count, status):
+    """Append inspection results to CSV log."""
+    df = pd.read_csv(CSV_LOG)
+    df.loc[len(df)] = [timestamp, count, status]
+    df.to_csv(CSV_LOG, index=False)
 
-        self.btn_stop = QPushButton("Arrêter caméra")
-        self.btn_stop.clicked.connect(self.stop_camera)
-        self.btn_stop.setEnabled(False)
-        self.layout.addWidget(self.btn_stop)
+def analyze_frame(frame):
+    """Process the frame and determine if object count/shape/position is acceptable."""
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    equalized = cv2.equalizeHist(gray)
+    blurred = cv2.GaussianBlur(equalized, (5, 5), 0)
+    thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                                   cv2.THRESH_BINARY_INV, 11, 2)
+    kernel = np.ones((5, 5), np.uint8)
+    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
-        self.btn_save = QPushButton("Sauvegarder image annotée")
-        self.btn_save.clicked.connect(self.save_image)
-        self.btn_save.setEnabled(False)
-        self.layout.addWidget(self.btn_save)
+    # Find contours (possible objects)
+    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        self.setLayout(self.layout)
+    ok = True
+    annotated = frame.copy()
 
-        self.camera = None
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_frame)
-        self.current_frame = None
+    for idx, cnt in enumerate(contours):
+        area = cv2.contourArea(cnt)
+        if area < 500:  # Filter out noise
+            continue
+        x, y, w, h = cv2.boundingRect(cnt)
+        cx, cy = x + w // 2, y + h // 2
 
-    def start_camera(self):
-        try:
-            self.camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-            self.camera.Open()
-            self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
-            self.converter = pylon.ImageFormatConverter()
-            self.converter.OutputPixelFormat = pylon.PixelType_BGR8packed
-            self.converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
-            self.btn_start.setEnabled(False)
-            self.btn_stop.setEnabled(True)
-            self.timer.start(30)  # ~33 FPS
-        except Exception as e:
-            QMessageBox.critical(self, "Erreur caméra", f"Impossible de démarrer la caméra : {e}")
+        # Check if object is within allowed area
+        if not (TOLERANCE_ZONE[0] < cx < TOLERANCE_ZONE[2] and TOLERANCE_ZONE[1] < cy < TOLERANCE_ZONE[3]):
+            ok = False
 
-    def stop_camera(self):
-        self.timer.stop()
-        if self.camera is not None:
-            self.camera.StopGrabbing()
-            self.camera.Close()
-            self.camera = None
-        self.image_label.setText("Caméra arrêtée")
-        self.btn_start.setEnabled(True)
-        self.btn_stop.setEnabled(False)
-        self.btn_save.setEnabled(False)
-        self.current_frame = None
+        # Annotate object on image
+        cv2.rectangle(annotated, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(annotated, str(idx + 1), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
-    def update_frame(self):
-        if self.camera is None or not self.camera.IsGrabbing():
-            return
-        grab_result = self.camera.RetrieveResult(2000, pylon.TimeoutHandling_ThrowException)
+    object_count = len(contours)
+    if object_count != EXPECTED_COUNT:
+        ok = False
+
+    status = "OK" if ok else "NOK"
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Save NOK images for inspection
+    if status == "NOK":
+        cv2.imwrite(f"{SAVE_DIR}/{timestamp}.png", annotated)
+
+    log_result(timestamp, object_count, status)
+    return annotated, status
+
+class MonitoringUI:
+    """Simple GUI using Tkinter to show results and interact with camera."""
+    def __init__(self, master):
+        self.master = master
+        master.title("Object Detection Monitoring")
+
+        self.canvas = Canvas(master, width=640, height=480)
+        self.canvas.pack()
+
+        self.status_label = Label(master, text="Status: Waiting...", font=("Arial", 14))
+        self.status_label.pack()
+
+        self.update_button = Button(master, text="Capture Frame", command=self.capture_and_update)
+        self.update_button.pack()
+
+        self.image_on_canvas = None
+
+        # Initialize Sony industrial camera
+        self.camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
+        self.camera.Open()
+
+        # Convert raw image to OpenCV BGR
+        self.converter = pylon.ImageFormatConverter()
+        self.converter.OutputPixelFormat = pylon.PixelType_BGR8packed
+        self.converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
+
+    def capture_and_update(self):
+        """Capture frame from camera, process it, and update GUI."""
+        self.camera.StartGrabbingMax(1)
+        grab_result = self.camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
+
         if grab_result.GrabSucceeded():
             image = self.converter.Convert(grab_result)
-            img = image.GetArray()
-            grab_result.Release()
+            frame = image.GetArray()
 
-            # Traitement image (détection objets classiques)
-            processed_img = self.process_image(img)
+            # Analyze the frame
+            analyzed, status = analyze_frame(frame)
 
-            # Conversion pour affichage Qt
-            rgb_image = cv2.cvtColor(processed_img, cv2.COLOR_BGR2RGB)
-            h, w, ch = rgb_image.shape
-            bytes_per_line = ch * w
-            qt_image = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-            self.image_label.setPixmap(QPixmap.fromImage(qt_image))
+            self.status_label.config(text=f"Status: {status}")
 
-            self.current_frame = processed_img
-            self.btn_save.setEnabled(True)
-        else:
-            grab_result.Release()
+            # Display processed frame
+            img = Image.fromarray(cv2.cvtColor(analyzed, cv2.COLOR_BGR2RGB))
+            img = img.resize((640, 480))
+            imgtk = ImageTk.PhotoImage(image=img)
 
-    def process_image(self, img):
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray, (5,5), 0)
-        _, thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        kernel = np.ones((5,5), np.uint8)
-        morph = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-        contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if self.image_on_canvas is None:
+                self.image_on_canvas = self.canvas.create_image(0, 0, anchor="nw", image=imgtk)
+            else:
+                self.canvas.itemconfig(self.image_on_canvas, image=imgtk)
+            self.canvas.image = imgtk  # Prevent garbage collection
 
-        count_valid = 0
-        for cnt in contours:
-            area = cv2.contourArea(cnt)
-            if area > 500:
-                count_valid += 1
-                x, y, w, h = cv2.boundingRect(cnt)
-                cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
-                cv2.putText(img, f"Obj {count_valid}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255), 2)
+        grab_result.Release()
 
-        cv2.putText(img, f"Objets detects : {count_valid}", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
-        return img
-
-    def save_image(self):
-        if self.current_frame is None:
-            QMessageBox.warning(self, "Aucune image", "Aucune image à sauvegarder.")
-            return
-        fname, _ = QFileDialog.getSaveFileName(self, "Enregistrer image", "", "PNG Files (*.png);;JPEG Files (*.jpg)")
-        if fname:
-            cv2.imwrite(fname, self.current_frame)
-            QMessageBox.information(self, "Image sauvegardée", f"Image enregistrée sous : {fname}")
-
+# Start the GUI app
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = CameraApp()
-    window.show()
-    sys.exit(app.exec())
+    root = Tk()
+    app = MonitoringUI(root)
+    root.mainloop()
