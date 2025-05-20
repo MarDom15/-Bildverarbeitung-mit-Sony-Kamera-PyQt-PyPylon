@@ -102,7 +102,7 @@ The goal is to ensure packaging quality and avoid any incidents due to missing, 
 │ GUI + Logging │
 │ CSV + NOK Img │
 └───────────────┘
-
+```
 ---
 
 ## 🧪 Technical Steps
